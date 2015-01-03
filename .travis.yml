@@ -43,3 +43,5 @@ deploy:
   region: ORD
   container: wheels
   skip_cleanup: true
+  on:
+    condition: $LATEST_TAG != 1
