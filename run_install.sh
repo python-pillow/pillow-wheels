@@ -2,7 +2,7 @@ source terryfy/travis_tools.sh
 source terryfy/library_installers.sh
 
 # Package versions for fresh source builds
-FT_VERSION=2.6
+FT_VERSION=2.6.1
 PNG_VERSION=1.6.18
 ZLIB_VERSION=1.2.8
 JPEG_VERSION=9a
