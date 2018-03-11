@@ -17,6 +17,8 @@ function pre_build {
     if [ -n "$IS_OSX" ]; then
         # Update to latest zlib for OSX build
         build_new_zlib
+    else
+        yum install -y rsync
     fi
     build_jpeg
     build_tiff
