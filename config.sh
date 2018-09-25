@@ -34,11 +34,17 @@ function pre_build {
         install_name_tool -id $BUILD_PREFIX/lib/libopenjp2.7.dylib $BUILD_PREFIX/lib/libopenjp2.2.1.0.dylib
     fi
     build_lcms2
-    build_libwebp
     if [ -n "$IS_OSX" ]; then
+        # Custom libwebp build to allow building on OS X 10.10 and 10.11
+        build_giflib
+        build_simple libwebp $LIBWEBP_VERSION \
+            https://storage.googleapis.com/downloads.webmproject.org/releases/webp tar.gz \
+            --enable-libwebpmux --enable-libwebpdemux --disable-sse4.1
+        
         # Custom freetype build
         build_simple freetype $FREETYPE_VERSION https://download.savannah.gnu.org/releases/freetype tar.gz --with-harfbuzz=no
     else
+        build_libwebp
         build_freetype
     fi
 }
