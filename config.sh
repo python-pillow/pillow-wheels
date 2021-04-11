@@ -2,6 +2,9 @@
 # Test for macOS with [ -n "$IS_MACOS" ]
 
 ARCHIVE_SDIR=pillow-depends-master
+PILLOW_WHEELS_DIR=$(abspath $(dirname "$CONFIG_PATH"))
+
+source $PILLOW_WHEELS_DIR/config_libavif.sh
 
 # Package versions for fresh source builds
 FREETYPE_VERSION=2.10.4
@@ -36,7 +39,7 @@ function untar {
 function pre_build {
     # Any stuff that you need to do before you start building the wheels
     # Runs in the root directory of this repository.
-    curl -fsSL -o pillow-depends-master.zip https://github.com/python-pillow/pillow-depends/archive/master.zip
+    curl -fsSL -o pillow-depends-master.zip https://github.com/fdintino/pillow-depends/archive/master.zip
     untar pillow-depends-master.zip
     if [ -n "$IS_MACOS" ]; then
         # Update to latest zlib for macOS build
@@ -101,6 +104,9 @@ function pre_build {
         export FREETYPE_CFLAGS=''
     fi
 
+    # defined in config_libavif.sh
+    build_libavif
+
     # Append licenses
     for filename in dependency_licenses/*; do
       echo -e "\n\n----\n\n$(basename $filename | cut -f 1 -d '.')\n" | cat >> Pillow/LICENSE
@@ -127,7 +133,7 @@ function run_tests_in_repo {
 
 EXP_CODECS="jpg jpg_2000"
 EXP_CODECS="$EXP_CODECS libtiff zlib"
-EXP_MODULES="freetype2 littlecms2 pil tkinter webp"
+EXP_MODULES="avif freetype2 littlecms2 pil tkinter webp"
 if [ -z "$IS_MACOS" ] && [[ "$MB_PYTHON_VERSION" != pypy3* ]]; then
   EXP_FEATURES="fribidi harfbuzz raqm transp_webp webp_anim webp_mux"
 else
