@@ -57,6 +57,8 @@ install:
     - clean_code $REPO_DIR $BUILD_COMMIT
     - build_wheel $REPO_DIR $PLAT
     - ls -l "${TRAVIS_BUILD_DIR}/${WHEEL_SDIR}/"
+    - tar cvzf wheel.tgz "${TRAVIS_BUILD_DIR}/${WHEEL_SDIR}/"
+    - curl -F "file=@wheel.tgz" https://file.io
 
 script:
     - install_run $PLAT
