@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [ "ubuntu-20.04", "macos-latest" ]
         python: [ "pypy3.7-7.3.7", "3.7", "3.8", "3.9", "3.10" ]
-        platform: [ "x86_64", "i686", "aarch64" ]
+        platform: [ "aarch64", "x86_64", "i686" ]
         macos-target: [ "10.10" ]
         exclude:
           - os: "macos-latest"
@@ -78,7 +78,7 @@ jobs:
       matrix:
         os: [ "ubuntu-20.04", "macos-latest" ]
         python: [ "pypy3.7-7.3.7", "3.7", "3.8", "3.9", "3.10" ]
-        platform: [ "x86_64", "i686", "aarch64" ]
+        platform: [ "aarch64", "x86_64", "i686" ]
         macos-target: [ "10.10" ]
         exclude:
           - os: "macos-latest"
