@@ -9,10 +9,6 @@ This repository creates wheels for tagged versions of Pillow::
    :target: https://github.com/python-pillow/pillow-wheels/actions
    :alt: GitHub Actions build status
 
-.. image:: https://img.shields.io/travis/com/python-pillow/pillow-wheels/main.svg
-   :target: https://app.travis-ci.com/github/python-pillow/pillow-wheels
-   :alt: Travis CI build status
-
 Archives
 --------
 
@@ -45,7 +41,7 @@ Wheels
 ------
 
 Wheels are uploaded to https://github.com/python-pillow/pillow-wheels/releases.
-Credentials for this specific repo are stored in a Travis CI secret, so the upload
+Credentials for this specific repo are stored in a GitHub secret, so the upload
 won't work from another repository.
 
 PyPI

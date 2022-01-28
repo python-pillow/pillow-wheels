@@ -1,18 +1,24 @@
 
-if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+if [[ "$OS_NAME" == "osx" ]]; then
   # webp, zstd, xz, libtiff cause a conflict with building webp and libtiff
   # curl from brew requires zstd, use system curl
   # if php is installed, brew tries to reinstall these after installing openblas
   brew remove --ignore-dependencies webp zstd xz libtiff curl php
 fi
 
-if [[ "$MB_PYTHON_VERSION" == pypy3* ]]; then
+if [[ "$PLAT" == "aarch64" ]]; then
+  DOCKER_TEST_IMAGE="multibuild/focal_{PLAT}"
+elif [[ "$MB_PYTHON_VERSION" == pypy3* ]]; then
   MB_PYTHON_OSX_VER="10.9"
   if [[ "$PLAT" == "i686" ]]; then
     DOCKER_TEST_IMAGE="multibuild/xenial_$PLAT"
   else
     DOCKER_TEST_IMAGE="multibuild/focal_$PLAT"
   fi
+fi
+
+if [[ "$PLAT" == "aarch64" ]]; then
+  docker run --rm --privileged aptman/qus -s -- -p $PLAT
 fi
 
 echo "::group::Install a virtualenv"
