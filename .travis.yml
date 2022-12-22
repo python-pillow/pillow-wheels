@@ -2,50 +2,103 @@ env:
   global:
       - REPO_DIR=Pillow
       - BUILD_COMMIT=HEAD
-      - PLAT=x86_64
-      - UNICODE_WIDTH=32
-      - BUILD_DEPENDS=""
-      - TEST_DEPENDS="pytest pytest-cov"
-      - MACOSX_DEPLOYMENT_TARGET=10.10
+      - PLAT=aarch64
+      - TEST_DEPENDS="pytest pytest-timeout"
 
 language: python
 # Default Python version is usually 3.6
-python: 3.9
-dist: xenial
+python: "3.11"
+dist: focal
 services: docker
 
 jobs:
   include:
-    - name: "3.6 Xenial aarch64"
+    - name: "3.7 Focal manylinux2014 aarch64"
       arch: arm64
       env:
-        - PLAT=aarch64
-        - MB_ML_VER=2014
-        - MB_PYTHON_VERSION=3.6
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    - name: "3.7 Xenial aarch64"
-      arch: arm64
-      env:
-        - PLAT=aarch64
         - MB_ML_VER=2014
         - MB_PYTHON_VERSION=3.7
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    - name: "3.8 Xenial aarch64"
+    - name: "3.7 Focal manylinux_2_28 aarch64"
+      arch: arm64
+      env:
+        - MB_ML_VER="_2_28"
+        - MB_PYTHON_VERSION=3.7
+    - name: "3.8 Focal manylinux2014 aarch64"
       os: linux
       arch: arm64
       env:
-        - PLAT=aarch64
         - MB_ML_VER=2014
         - MB_PYTHON_VERSION=3.8
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    - name: "3.9 Xenial aarch64"
+    - name: "3.8 Focal manylinux_2_28 aarch64"
       os: linux
       arch: arm64
       env:
-        - PLAT=aarch64
+        - MB_ML_VER="_2_28"
+        - MB_PYTHON_VERSION=3.8
+    - name: "3.8 musllinux_1_1 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER="_1_1"
+        - MB_ML_LIBC="musllinux"
+        - MB_PYTHON_VERSION=3.8
+    - name: "3.9 Focal manylinux2014 aarch64"
+      os: linux
+      arch: arm64
+      env:
         - MB_ML_VER=2014
         - MB_PYTHON_VERSION=3.9
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - name: "3.9 Focal manylinux_2_28 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER="_2_28"
+        - MB_PYTHON_VERSION=3.9
+    - name: "3.9 musllinux_1_1 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER="_1_1"
+        - MB_ML_LIBC="musllinux"
+        - MB_PYTHON_VERSION=3.9
+    - name: "3.10 Focal manylinux2014 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER=2014
+        - MB_PYTHON_VERSION=3.10
+    - name: "3.10 Focal manylinux_2_28 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER="_2_28"
+        - MB_PYTHON_VERSION=3.10
+    - name: "3.10 musllinux_1_1 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER="_1_1"
+        - MB_ML_LIBC="musllinux"
+        - MB_PYTHON_VERSION=3.10
+    - name: "3.11 Focal manylinux_2_28 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER=2014
+        - MB_PYTHON_VERSION=3.11
+    - name: "3.11 Focal manylinux_2_28 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER="_2_28"
+        - MB_PYTHON_VERSION=3.11
+    - name: "3.11 musllinux_1_1 aarch64"
+      os: linux
+      arch: arm64
+      env:
+        - MB_ML_VER="_1_1"
+        - MB_ML_LIBC="musllinux"
+        - MB_PYTHON_VERSION=3.11
 
 before_install:
     - source multibuild/common_utils.sh
@@ -54,22 +107,20 @@ before_install:
 
 install:
     # Maybe get and clean and patch source
-    - if [[ -n "$LATEST" ]]; then BUILD_COMMIT=master; fi
-    - clean_code $REPO_DIR $BUILD_COMMIT
-    - build_wheel $REPO_DIR $PLAT
+    - clean_code
+    - build_wheel
     - ls -l "${TRAVIS_BUILD_DIR}/${WHEEL_SDIR}/"
 
 script:
-    - install_run $PLAT
+    - install_run
 
 # Upload wheels to GitHub Releases
 deploy:
   provider: releases
-  api_key:
-    secure: PTgVG7DrYa2FTSQOq0eDaHDZb1vy0vf6MulyuoXMg8rssPQgJ/mYxRpNDK4V0EKolpN7f8s/OGg+fpNNtp5pOCJGsx0Okcf+YB2ac+Xl7DQPBucbDKFXs1ndf/ny6umk0TXX8JTrDp/mJDJf401yx1+qsZ6X/PFvchXvXVrQ+SQ=
+  api_key: $GITHUB_RELEASE_TOKEN
   file_glob: true
   file: "${TRAVIS_BUILD_DIR}/${WHEEL_SDIR}/*.whl"
   on:
-    condition: -z "$LATEST"
     repo: python-pillow/pillow-wheels
+    tags: true
   skip_cleanup: true

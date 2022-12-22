@@ -5,12 +5,16 @@ This repository creates wheels for tagged versions of Pillow::
 
     ./update-pillow-tag.sh <VERSION>
 
-.. image:: https://github.com/python-pillow/pillow-wheels/workflows/Wheels/badge.svg
-   :target: https://github.com/python-pillow/pillow-wheels/actions
-   :alt: GitHub Actions build status
+.. image:: https://github.com/python-pillow/pillow-wheels/workflows/Lint/badge.svg
+   :target: https://github.com/python-pillow/pillow-wheels/actions/workflows/lint.yml
+   :alt: GitHub Actions build status (Lint)
 
-.. image:: https://img.shields.io/travis/com/python-pillow/pillow-wheels/master.svg
-   :target: https://travis-ci.com/github/python-pillow/pillow-wheels
+.. image:: https://github.com/python-pillow/pillow-wheels/workflows/Wheels/badge.svg
+   :target: https://github.com/python-pillow/pillow-wheels/actions/workflows/wheels.yml
+   :alt: GitHub Actions build status (Wheels)
+
+.. image:: https://img.shields.io/travis/com/python-pillow/pillow-wheels/main.svg
+   :target: https://app.travis-ci.com/github/python-pillow/pillow-wheels
    :alt: Travis CI build status
 
 Archives
@@ -31,22 +35,12 @@ See the ``pre_build`` in ``config.sh`` and the ``fetch_unpack`` routine in
 ``multibuild/library_builders.sh`` for the filename to give to the downloaded
 archive.
 
-Dependencies
-------------
-
-NumPy
-~~~~~
-
-Check minimum NumPy versions to build against in ``.travis.yml`` file. Build against the
-earliest NumPy that Pillow is compatible with; see
-`forward, backward NumPy compatibility <https://stackoverflow.com/questions/17709641/valueerror-numpy-dtype-has-the-wrong-size-try-recompiling/18369312#18369312>`_
-
 Wheels
 ------
 
 Wheels are uploaded to https://github.com/python-pillow/pillow-wheels/releases.
-Credentials are encrypted to this specific repo in the ``.travis.yml`` file,
-so the upload won't work from another repository.
+Credentials for this specific repo are stored in a Travis CI secret, so the upload
+won't work from another repository.
 
 PyPI
 ~~~~
@@ -55,4 +49,4 @@ Download wheels from the
 `latest release <https://github.com/python-pillow/pillow-wheels/releases>`_ and upload
 to PyPI::
 
-    twine upload Pillow-<VERSION>-*
+    python3 -m twine upload Pillow-<VERSION>-*

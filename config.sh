@@ -7,33 +7,49 @@ PILLOW_WHEELS_DIR=$(abspath $(dirname "$CONFIG_PATH"))
 source $PILLOW_WHEELS_DIR/config_libavif.sh
 
 # Package versions for fresh source builds
-FREETYPE_VERSION=2.10.4
-HARFBUZZ_VERSION=2.8.0
-LIBPNG_VERSION=1.6.37
-ZLIB_VERSION=1.2.11
-JPEG_VERSION=9d
-OPENJPEG_VERSION=2.4.0
-XZ_VERSION=5.2.5
-TIFF_VERSION=4.2.0
-LCMS2_VERSION=2.12
-GIFLIB_VERSION=5.1.4
-LIBWEBP_VERSION=1.2.0
+FREETYPE_VERSION=2.12.1
+HARFBUZZ_VERSION=6.0.0
+LIBPNG_VERSION=1.6.39
+JPEGTURBO_VERSION=2.1.4
+OPENJPEG_VERSION=2.5.0
+XZ_VERSION=5.4.0
+TIFF_VERSION=4.4.0
+LCMS2_VERSION=2.14
+if [[ -n "$IS_MACOS" ]]; then
+    GIFLIB_VERSION=5.1.4
+else
+    GIFLIB_VERSION=5.2.1
+fi
+if [[ -n "$IS_MACOS" ]] || [[ "$MB_ML_VER" != 2014 ]]; then
+    ZLIB_VERSION=1.2.13
+else
+    ZLIB_VERSION=1.2.8
+fi
+LIBWEBP_VERSION=1.2.4
 BZIP2_VERSION=1.0.8
-LIBXCB_VERSION=1.14
+LIBXCB_VERSION=1.15
+BROTLI_VERSION=1.0.9
 
-# workaround for multibuild bug with .tar.xz
-function untar {
-    local in_fname=$1
-    if [ -z "$in_fname" ];then echo "in_fname not defined"; exit 1; fi
-    local extension=${in_fname##*.}
-    case $extension in
-        tar) tar -xf $in_fname ;;
-        gz|tgz) tar -zxf $in_fname ;;
-        bz2) tar -jxf $in_fname ;;
-        zip) unzip -qq $in_fname ;;
-        xz) unxz -c $in_fname | tar -xf - ;;
-        *) echo Did not recognize extension $extension; exit 1 ;;
-    esac
+if [[ -n "$IS_MACOS" ]] && [[ "$PLAT" == "x86_64" ]]; then
+    function build_openjpeg {
+        local out_dir=$(fetch_unpack https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz)
+        (cd $out_dir \
+            && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX -DCMAKE_INSTALL_NAME_DIR=$BUILD_PREFIX/lib . \
+            && make install)
+        touch openjpeg-stamp
+    }
+fi
+
+function build_brotli {
+    local cmake=$(get_modern_cmake)
+    local out_dir=$(fetch_unpack https://github.com/google/brotli/archive/v$BROTLI_VERSION.tar.gz)
+    (cd $out_dir \
+        && $cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX -DCMAKE_INSTALL_NAME_DIR=$BUILD_PREFIX/lib . \
+        && make install)
+    if [[ "$MB_ML_LIBC" == "manylinux" ]] && [[ "$PLAT" == "x86_64" ]]; then
+        cp /usr/local/lib64/libbrotli* /usr/local/lib
+        cp /usr/local/lib64/pkgconfig/libbrotli* /usr/local/lib/pkgconfig
+    fi
 }
 
 function pre_build {
@@ -41,10 +57,12 @@ function pre_build {
     # Runs in the root directory of this repository.
     curl -fsSL -o pillow-depends-master.zip https://github.com/fdintino/pillow-depends/archive/master.zip
     untar pillow-depends-master.zip
-    if [ -n "$IS_MACOS" ]; then
-        # Update to latest zlib for macOS build
-        build_new_zlib
+
+    build_xz
+    if [ -z "$IS_ALPINE" ] && [ -z "$IS_MACOS" ]; then
+        yum remove -y zlib-devel
     fi
+    build_new_zlib
 
     if [ -n "$IS_MACOS" ]; then
         ORIGINAL_BUILD_PREFIX=$BUILD_PREFIX
@@ -52,28 +70,25 @@ function pre_build {
         BUILD_PREFIX=`dirname $(dirname $(which python))`
         PKG_CONFIG_PATH="$BUILD_PREFIX/lib/pkgconfig"
     fi
-    if [[ $MACOSX_DEPLOYMENT_TARGET != "11.0" ]]; then
-		build_simple xcb-proto 1.14.1 https://xcb.freedesktop.org/dist
-		if [ -n "$IS_MACOS" ]; then
-			build_simple xproto 7.0.31 https://www.x.org/pub/individual/proto
-			build_simple libXau 1.0.9 https://www.x.org/pub/individual/lib
-			build_simple libpthread-stubs 0.4 https://xcb.freedesktop.org/dist
-		else
-			sed -i s/\${pc_sysrootdir\}// /usr/local/lib/pkgconfig/xcb-proto.pc
-		fi
-		build_simple libxcb $LIBXCB_VERSION https://xcb.freedesktop.org/dist
+    build_simple xcb-proto 1.15.2 https://xcb.freedesktop.org/dist
+    if [ -n "$IS_MACOS" ]; then
+        build_simple xorgproto 2022.2 https://www.x.org/pub/individual/proto
+        build_simple libXau 1.0.11 https://www.x.org/pub/individual/lib
+        build_simple libpthread-stubs 0.4 https://xcb.freedesktop.org/dist
+        cp venv/share/pkgconfig/xcb-proto.pc venv/lib/pkgconfig/xcb-proto.pc
+    else
+        sed s/\${pc_sysrootdir\}// /usr/local/share/pkgconfig/xcb-proto.pc > /usr/local/lib/pkgconfig/xcb-proto.pc
     fi
+    build_simple libxcb $LIBXCB_VERSION https://xcb.freedesktop.org/dist
     if [ -n "$IS_MACOS" ]; then
         BUILD_PREFIX=$ORIGINAL_BUILD_PREFIX
         PKG_CONFIG_PATH=$ORIGINAL_PKG_CONFIG_PATH
     fi
-    
-    # Custom flags to include both multibuild and jpeg defaults
-    ORIGINAL_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS -g -O2"
-    build_jpeg
-    CFLAGS=$ORIGINAL_CFLAGS
 
+    build_libjpeg_turbo
+    if [[ -n "$IS_MACOS" ]]; then
+        rm /usr/local/lib/libjpeg.dylib
+    fi
     build_tiff
     if [ -n "$IS_MACOS" ]; then
         # Remove existing libpng
@@ -83,13 +98,16 @@ function pre_build {
     build_lcms2
     build_openjpeg
 
+    ORIGINAL_CFLAGS=$CFLAGS
     CFLAGS="$CFLAGS -O3 -DNDEBUG"
     build_libwebp
     CFLAGS=$ORIGINAL_CFLAGS
 
+    build_brotli
+
     if [ -n "$IS_MACOS" ]; then
         # Custom freetype build
-        build_simple freetype $FREETYPE_VERSION https://download.savannah.gnu.org/releases/freetype tar.gz --with-harfbuzz=no --with-brotli=no
+        build_simple freetype $FREETYPE_VERSION https://download.savannah.gnu.org/releases/freetype tar.gz --with-harfbuzz=no
     else
         build_freetype
     fi
@@ -131,27 +149,27 @@ function run_tests_in_repo {
     pytest
 }
 
-EXP_CODECS="jpg jpg_2000"
-EXP_CODECS="$EXP_CODECS libtiff zlib"
-EXP_MODULES="avif freetype2 littlecms2 pil tkinter webp"
-if [ -z "$IS_MACOS" ] && [[ "$MB_PYTHON_VERSION" != pypy3* ]]; then
-  EXP_FEATURES="fribidi harfbuzz raqm transp_webp webp_anim webp_mux"
+EXP_CODECS="jpg jpg_2000 libtiff zlib"
+if [[ "$MB_PYTHON_VERSION" == pypy3.* ]] && [ -n "$IS_MACOS" ]; then
+    EXP_MODULES="freetype2 littlecms2 pil webp"
 else
-  # can't find FriBiDi
-  EXP_FEATURES="transp_webp webp_anim webp_mux"
+    EXP_MODULES="freetype2 littlecms2 pil tkinter webp"
 fi
-if [[ $MACOSX_DEPLOYMENT_TARGET != "11.0" ]]; then
-    EXP_FEATURES="$EXP_FEATURES xcb"
-fi
+EXP_FEATURES="avif fribidi harfbuzz libjpeg_turbo raqm transp_webp webp_anim webp_mux xcb"
 
 function run_tests {
     if [ -n "$IS_MACOS" ]; then
-        brew install openblas
-        echo -e "[openblas]\nlibraries = openblas\nlibrary_dirs = /usr/local/opt/openblas/lib" >> ~/.numpy-site.cfg
-    fi
-    if [[ "$MB_PYTHON_VERSION" == pypy3.7-* ]] && [[ $(uname -m) == "i686" ]]; then
-        python3 -m pip install numpy==1.19.5
+        brew install fribidi
+    elif [ -n "$IS_ALPINE" ]; then
+        apk add fribidi
     else
+        apt-get install libfribidi0
+    fi
+    if [[ $(uname -m) == "i686" ]]; then
+        if [[ "$MB_PYTHON_VERSION" != 3.11 ]]; then
+            python3 -m pip install numpy==1.21
+        fi
+    elif [ -z "$IS_ALPINE" ]; then
         python3 -m pip install numpy
     fi
 
