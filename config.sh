@@ -13,7 +13,7 @@ LIBPNG_VERSION=1.6.39
 JPEGTURBO_VERSION=2.1.4
 OPENJPEG_VERSION=2.5.0
 XZ_VERSION=5.4.0
-TIFF_VERSION=4.4.0
+TIFF_VERSION=4.5.0
 LCMS2_VERSION=2.14
 if [[ -n "$IS_MACOS" ]]; then
     GIFLIB_VERSION=5.1.4
@@ -150,11 +150,7 @@ function run_tests_in_repo {
 }
 
 EXP_CODECS="jpg jpg_2000 libtiff zlib"
-if [[ "$MB_PYTHON_VERSION" == pypy3.* ]] && [ -n "$IS_MACOS" ]; then
-    EXP_MODULES="freetype2 littlecms2 pil webp"
-else
-    EXP_MODULES="freetype2 littlecms2 pil tkinter webp"
-fi
+EXP_MODULES="freetype2 littlecms2 pil tkinter webp"
 EXP_FEATURES="avif fribidi harfbuzz libjpeg_turbo raqm transp_webp webp_anim webp_mux xcb"
 
 function run_tests {
