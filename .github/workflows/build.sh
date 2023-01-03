@@ -6,12 +6,6 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   # remove lcms2 to fix building openjpeg on arm64
   # remove xmlto to skip building giflib docs
   brew remove --ignore-dependencies webp zstd xz libtiff libxcb curl php lcms2 xmlto ghostscript
-
-  if [[ "$PLAT" == "arm64" ]]; then
-    export MACOSX_DEPLOYMENT_TARGET="11.0"
-  else
-    export MACOSX_DEPLOYMENT_TARGET="10.10"
-  fi
 fi
 
 if [[ "$MB_PYTHON_VERSION" == pypy3* ]]; then
@@ -36,7 +30,7 @@ echo "::group::Build wheel"
   ls -l "${GITHUB_WORKSPACE}/${WHEEL_SDIR}/"
 echo "::endgroup::"
 
-if [[ $MACOSX_DEPLOYMENT_TARGET != "11.0" ]]; then
+if [[ $PLAT != "arm64" ]]; then
   echo "::group::Test wheel"
     install_run
   echo "::endgroup::"
