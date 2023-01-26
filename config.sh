@@ -95,6 +95,10 @@ function pre_build {
     build_lcms2
     build_openjpeg
 
+    if [ -n "$IS_MACOS" ]; then
+        # Remove existing libwebp
+        rm /usr/local/lib/libwebp*
+    fi
     ORIGINAL_CFLAGS=$CFLAGS
     CFLAGS="$CFLAGS -O3 -DNDEBUG"
     build_libwebp
