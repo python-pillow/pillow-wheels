@@ -27,14 +27,29 @@ BZIP2_VERSION=1.0.8
 LIBXCB_VERSION=1.15
 BROTLI_VERSION=1.0.9
 
-if [[ -n "$IS_MACOS" ]] && [[ "$PLAT" == "x86_64" ]]; then
-    function build_openjpeg {
-        local out_dir=$(fetch_unpack https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz)
-        (cd $out_dir \
-            && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX -DCMAKE_INSTALL_NAME_DIR=$BUILD_PREFIX/lib . \
-            && make install)
-        touch openjpeg-stamp
+if [[ -n "$IS_MACOS" ]]; then
+    function wrap_wheel_builder {
+        if [[ "${PLAT:-}" == "universal2" ]]; then
+            (macos_arm64_cross_build_setup && $@)
+            rm -rf *-stamp
+            (macos_intel_native_build_setup && $@)
+            fuse_macos_intel_arm64
+        elif [[ "${PLAT:-}" == "arm64" ]]; then
+            (macos_arm64_cross_build_setup && $@)
+        elif [[ "${PLAT:-}" == "x86_64" ]]; then
+            (macos_intel_native_build_setup && $@)
+        fi
     }
+
+    if [[ "$PLAT" == "x86_64" ]]; then
+        function build_openjpeg {
+            local out_dir=$(fetch_unpack https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz)
+            (cd $out_dir \
+                && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX -DCMAKE_INSTALL_NAME_DIR=$BUILD_PREFIX/lib . \
+                && make install)
+            touch openjpeg-stamp
+        }
+    fi
 fi
 
 function build_brotli {
@@ -52,8 +67,10 @@ function build_brotli {
 function pre_build {
     # Any stuff that you need to do before you start building the wheels
     # Runs in the root directory of this repository.
-    curl -fsSL -o pillow-depends-main.zip https://github.com/python-pillow/pillow-depends/archive/main.zip
-    untar pillow-depends-main.zip
+    if [ ! -d pillow-depends-main ]; then
+        curl -fsSL -o pillow-depends-main.zip https://github.com/python-pillow/pillow-depends/archive/main.zip
+        untar pillow-depends-main.zip
+    fi
 
     build_xz
     if [ -z "$IS_ALPINE" ] && [ -z "$IS_MACOS" ]; then

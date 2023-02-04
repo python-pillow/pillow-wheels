@@ -30,14 +30,20 @@ jobs:
           "3.10",
           "3.11",
         ]
-        platform: [ "x86_64", "arm64" ]
+        platform: [ "x86_64", "arm64", "universal2" ]
         exclude:
           - python: "3.7"
             platform: "arm64"
+          - python: "3.7"
+            platform: "universal2"
           - python: "pypy3.8-7.3.11"
             platform: "arm64"
+          - python: "pypy3.8-7.3.11"
+            platform: "universal2"
           - python: "pypy3.9-7.3.11"
             platform: "arm64"
+          - python: "pypy3.9-7.3.11"
+            platform: "universal2"
     env:
       BUILD_COMMIT: ${{ inputs.build-commit }}
       PLAT: ${{ matrix.platform }}
