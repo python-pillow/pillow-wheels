@@ -1,5 +1,5 @@
 
-if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+if [[ "$OS_NAME" == "osx" ]]; then
   # webp, zstd, xz, libtiff, libxcb cause a conflict with building webp, libtiff, libxcb
   # libxdmcp causes an issue on macOS < 11
   # curl from brew requires zstd, use system curl
@@ -21,6 +21,10 @@ if [[ "$MB_PYTHON_VERSION" == pypy3* ]]; then
   fi
 elif [[ "$MB_PYTHON_VERSION" == "3.11" ]] && [[ "$PLAT" == "i686" ]]; then
   DOCKER_TEST_IMAGE="radarhere/bionic-$PLAT"
+fi
+
+if [[ "$PLAT" == "aarch64" ]]; then
+  docker run --rm --privileged aptman/qus -s -- -p $PLAT
 fi
 
 echo "::group::Install a virtualenv"

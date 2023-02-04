@@ -16,7 +16,7 @@ env:
 
 jobs:
   build:
-    name: ${{ matrix.python }} ${{ matrix.platform }}
+    name: ${{ matrix.platform }} ${{ matrix.python }}
     runs-on: "macos-latest"
     strategy:
       fail-fast: false
@@ -42,7 +42,7 @@ jobs:
       BUILD_COMMIT: ${{ inputs.build-commit }}
       PLAT: ${{ matrix.platform }}
       MB_PYTHON_VERSION: ${{ matrix.python }}
-      TRAVIS_OS_NAME: "osx"
+      OS_NAME: "osx"
     steps:
       - uses: actions/checkout@v3
         with:
