@@ -27,29 +27,14 @@ BZIP2_VERSION=1.0.8
 LIBXCB_VERSION=1.15
 BROTLI_VERSION=1.0.9
 
-if [[ -n "$IS_MACOS" ]]; then
-    function wrap_wheel_builder {
-        if [[ "${PLAT:-}" == "universal2" ]]; then
-            (macos_arm64_cross_build_setup && $@)
-            rm -rf *-stamp
-            (macos_intel_native_build_setup && $@)
-            fuse_macos_intel_arm64
-        elif [[ "${PLAT:-}" == "arm64" ]]; then
-            (macos_arm64_cross_build_setup && $@)
-        elif [[ "${PLAT:-}" == "x86_64" ]]; then
-            (macos_intel_native_build_setup && $@)
-        fi
+if [[ -n "$IS_MACOS" ]] && [[ "$PLAT" == "x86_64" ]]; then
+    function build_openjpeg {
+        local out_dir=$(fetch_unpack https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz)
+        (cd $out_dir \
+            && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX -DCMAKE_INSTALL_NAME_DIR=$BUILD_PREFIX/lib . \
+            && make install)
+        touch openjpeg-stamp
     }
-
-    if [[ "$PLAT" == "x86_64" ]]; then
-        function build_openjpeg {
-            local out_dir=$(fetch_unpack https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz)
-            (cd $out_dir \
-                && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX -DCMAKE_INSTALL_NAME_DIR=$BUILD_PREFIX/lib . \
-                && make install)
-            touch openjpeg-stamp
-        }
-    fi
 fi
 
 function build_brotli {
@@ -101,9 +86,12 @@ function pre_build {
 
     build_libjpeg_turbo
     if [[ -n "$IS_MACOS" ]]; then
-        rm /usr/local/lib/libjpeg.dylib
+        rm /usr/local/lib/libjpeg.dylib || true
     fi
     build_tiff
+    if [[ -n "$IS_MACOS" ]]; then
+        rm /usr/local/lib/libpng* || true
+    fi
     build_libpng
     build_lcms2
     build_openjpeg
@@ -161,6 +149,10 @@ EXP_MODULES="freetype2 littlecms2 pil tkinter webp"
 EXP_FEATURES="fribidi harfbuzz libjpeg_turbo raqm transp_webp webp_anim webp_mux xcb"
 
 function run_tests {
+    if [[ "$PLAT" == "universal2" ]]; then
+        # libpng needs to be rebuilt on x86_64 to fix ImageMagick
+        build_libpng
+    fi
     if [ -n "$IS_MACOS" ]; then
         brew install fribidi
     elif [ -n "$IS_ALPINE" ]; then
