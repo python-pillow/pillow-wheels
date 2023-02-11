@@ -52,9 +52,6 @@ function build_brotli {
 function pre_build {
     # Any stuff that you need to do before you start building the wheels
     # Runs in the root directory of this repository.
-    curl -fsSL -o pillow-depends-main.zip https://github.com/python-pillow/pillow-depends/archive/main.zip
-    untar pillow-depends-main.zip
-
     build_xz
     if [ -z "$IS_ALPINE" ] && [ -z "$IS_MACOS" ]; then
         yum remove -y zlib-devel
@@ -147,10 +144,9 @@ function run_tests {
     if [ -n "$IS_MACOS" ]; then
         brew install fribidi
     elif [ -n "$IS_ALPINE" ]; then
-        apk add curl fribidi
+        apk add fribidi
     else
-        apt-get update
-        apt-get install -y curl libfribidi0 unzip
+        apt-get install libfribidi0
     fi
     if [[ $(uname -m) == "i686" ]]; then
         if [[ "$MB_PYTHON_VERSION" != 3.11 ]]; then
@@ -160,9 +156,7 @@ function run_tests {
         python3 -m pip install numpy
     fi
 
-    curl -fsSL -o pillow-test-images.zip https://github.com/python-pillow/test-images/archive/main.zip
-    untar pillow-test-images.zip
-    mv test-images-main/* ../Pillow/Tests/images
+    mv ../test-images-main/* ../Pillow/Tests/images
 
     # Runs tests on installed distribution from an empty directory
     (cd ../Pillow && run_tests_in_repo)
