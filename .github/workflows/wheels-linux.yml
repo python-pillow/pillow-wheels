@@ -24,7 +24,6 @@ jobs:
         python: [
           "pypy3.8-7.3.11",
           "pypy3.9-7.3.11",
-          "3.7",
           "3.8",
           "3.9",
           "3.10",
@@ -34,8 +33,6 @@ jobs:
         mb-ml-libc: [ "manylinux", "musllinux" ]
         mb-ml-ver: [ 2014, "_1_1", "_2_28" ]
         exclude:
-          - python: "3.7"
-            mb-ml-libc: "musllinux"
           - python: "pypy3.8-7.3.11"
             mb-ml-libc: "musllinux"
           - python: "pypy3.9-7.3.11"

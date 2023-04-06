@@ -4,14 +4,14 @@
 ARCHIVE_SDIR=pillow-depends-main
 
 # Package versions for fresh source builds
-FREETYPE_VERSION=2.12.1
-HARFBUZZ_VERSION=6.0.0
+FREETYPE_VERSION=2.13.0
+HARFBUZZ_VERSION=7.1.0
 LIBPNG_VERSION=1.6.39
-JPEGTURBO_VERSION=2.1.5
+JPEGTURBO_VERSION=2.1.5.1
 OPENJPEG_VERSION=2.5.0
-XZ_VERSION=5.4.1
+XZ_VERSION=5.4.2
 TIFF_VERSION=4.5.0
-LCMS2_VERSION=2.14
+LCMS2_VERSION=2.15
 if [[ -n "$IS_MACOS" ]]; then
     GIFLIB_VERSION=5.1.4
 else
@@ -147,9 +147,10 @@ function run_tests {
     if [ -n "$IS_MACOS" ]; then
         brew install fribidi
     elif [ -n "$IS_ALPINE" ]; then
-        apk add fribidi
+        apk add curl fribidi
     else
-        apt-get install libfribidi0
+        apt-get update
+        apt-get install -y curl libfribidi0 unzip
     fi
     if [[ $(uname -m) == "i686" ]]; then
         if [[ "$MB_PYTHON_VERSION" != 3.11 ]]; then
@@ -159,7 +160,9 @@ function run_tests {
         python3 -m pip install numpy
     fi
 
-    mv ../pillow-depends-main/test_images/* ../Pillow/Tests/images
+    curl -fsSL -o pillow-test-images.zip https://github.com/python-pillow/test-images/archive/main.zip
+    untar pillow-test-images.zip
+    mv test-images-main/* ../Pillow/Tests/images
 
     # Runs tests on installed distribution from an empty directory
     (cd ../Pillow && run_tests_in_repo)
