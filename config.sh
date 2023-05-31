@@ -5,7 +5,7 @@ ARCHIVE_SDIR=pillow-depends-main
 
 # Package versions for fresh source builds
 FREETYPE_VERSION=2.13.0
-HARFBUZZ_VERSION=7.1.0
+HARFBUZZ_VERSION=7.3.0
 LIBPNG_VERSION=1.6.39
 JPEGTURBO_VERSION=2.1.5.1
 OPENJPEG_VERSION=2.5.0
@@ -146,7 +146,11 @@ function run_tests_in_repo {
 
 EXP_CODECS="jpg jpg_2000 libtiff zlib"
 EXP_MODULES="freetype2 littlecms2 pil tkinter webp"
-EXP_FEATURES="fribidi harfbuzz libjpeg_turbo raqm transp_webp webp_anim webp_mux xcb"
+if ([ -n "$IS_MACOS" ] && [[ "$MB_PYTHON_VERSION" == 3.12 ]]); then
+    EXP_FEATURES="libjpeg_turbo transp_webp webp_anim webp_mux xcb"
+else
+    EXP_FEATURES="fribidi harfbuzz libjpeg_turbo raqm transp_webp webp_anim webp_mux xcb"
+fi
 
 function run_tests {
     if [[ "$PLAT" == "universal2" ]]; then
@@ -165,7 +169,7 @@ function run_tests {
         if [[ "$MB_PYTHON_VERSION" != 3.11 ]]; then
             python3 -m pip install numpy==1.21
         fi
-    elif [ -z "$IS_ALPINE" ]; then
+    elif [ -z "$IS_ALPINE" ] && [[ "$MB_PYTHON_VERSION" != 3.12 ]]; then
         python3 -m pip install numpy
     fi
 
