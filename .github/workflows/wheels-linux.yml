@@ -28,6 +28,7 @@ jobs:
           "3.9",
           "3.10",
           "3.11",
+          "3.12",
         ]
         platform: [ "aarch64", "i686", "x86_64" ]
         mb-ml-libc: [ "manylinux", "musllinux" ]
@@ -47,6 +48,8 @@ jobs:
             mb-ml-ver: "_1_1"
           - mb-ml-libc: "musllinux"
             mb-ml-ver: "_2_28"
+          - platform: "i686"
+            python: "3.12"
     env:
       BUILD_COMMIT: ${{ inputs.build-commit }}
       PLAT: ${{ matrix.platform }}
