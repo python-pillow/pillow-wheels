@@ -6,10 +6,10 @@ ARCHIVE_SDIR=pillow-depends-main
 # Package versions for fresh source builds
 FREETYPE_VERSION=2.13.0
 HARFBUZZ_VERSION=7.3.0
-LIBPNG_VERSION=1.6.39
+LIBPNG_VERSION=1.6.40
 JPEGTURBO_VERSION=2.1.5.1
 OPENJPEG_VERSION=2.5.0
-XZ_VERSION=5.4.2
+XZ_VERSION=5.4.3
 TIFF_VERSION=4.5.0
 LCMS2_VERSION=2.15
 if [[ -n "$IS_MACOS" ]]; then
@@ -128,8 +128,7 @@ function pip_wheel_cmd {
         CFLAGS="$CFLAGS --std=c99"  # for Raqm
     fi
     pip wheel $(pip_opts) \
-        --global-option build_ext --global-option --enable-raqm \
-        --global-option --vendor-raqm --global-option --vendor-fribidi \
+        -C raqm=enable -C raqm=vendor -C fribidi=vendor \
         -w $abs_wheelhouse --no-deps .
 }
 
@@ -141,11 +140,7 @@ function run_tests_in_repo {
 
 EXP_CODECS="jpg jpg_2000 libtiff zlib"
 EXP_MODULES="freetype2 littlecms2 pil tkinter webp"
-if ([ -n "$IS_MACOS" ] && [[ "$MB_PYTHON_VERSION" == 3.12 ]]); then
-    EXP_FEATURES="libjpeg_turbo transp_webp webp_anim webp_mux xcb"
-else
-    EXP_FEATURES="fribidi harfbuzz libjpeg_turbo raqm transp_webp webp_anim webp_mux xcb"
-fi
+EXP_FEATURES="fribidi harfbuzz libjpeg_turbo raqm transp_webp webp_anim webp_mux xcb"
 
 function run_tests {
     if [ -n "$IS_MACOS" ]; then
@@ -156,11 +151,7 @@ function run_tests {
         apt-get update
         apt-get install -y curl libfribidi0 unzip
     fi
-    if [[ $(uname -m) == "i686" ]]; then
-        if [[ "$MB_PYTHON_VERSION" != 3.11 ]]; then
-            python3 -m pip install numpy==1.21
-        fi
-    elif [ -z "$IS_ALPINE" ] && [[ "$MB_PYTHON_VERSION" != 3.12 ]]; then
+    if [ -z "$IS_ALPINE" ] && [[ "$MB_PYTHON_VERSION" != 3.12 ]]; then
         python3 -m pip install numpy
     fi
 

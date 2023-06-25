@@ -22,34 +22,28 @@ jobs:
       fail-fast: false
       matrix:
         python: [
-          "pypy3.8-7.3.11",
-          "pypy3.9-7.3.11",
+          "pypy3.9-7.3.12",
+          "pypy3.10-7.3.12",
           "3.8",
           "3.9",
           "3.10",
           "3.11",
           "3.12",
         ]
-        platform: [ "aarch64", "i686", "x86_64" ]
+        platform: [ "aarch64", "x86_64" ]
         mb-ml-libc: [ "manylinux", "musllinux" ]
         mb-ml-ver: [ 2014, "_1_1", "_2_28" ]
         exclude:
-          - python: "pypy3.8-7.3.11"
+          - python: "pypy3.9-7.3.12"
             mb-ml-libc: "musllinux"
-          - python: "pypy3.9-7.3.11"
+          - python: "pypy3.10-7.3.12"
             mb-ml-libc: "musllinux"
-          - platform: "i686"
-            mb-ml-ver: "_1_1"
-          - platform: "i686"
-            mb-ml-ver: "_2_28"
           - mb-ml-libc: "musllinux"
             mb-ml-ver: 2014
           - mb-ml-libc: "manylinux"
             mb-ml-ver: "_1_1"
           - mb-ml-libc: "musllinux"
             mb-ml-ver: "_2_28"
-          - platform: "i686"
-            python: "3.12"
     env:
       BUILD_COMMIT: ${{ inputs.build-commit }}
       PLAT: ${{ matrix.platform }}
