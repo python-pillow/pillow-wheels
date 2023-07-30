@@ -4,13 +4,13 @@
 ARCHIVE_SDIR=pillow-depends-main
 
 # Package versions for fresh source builds
-FREETYPE_VERSION=2.13.0
-HARFBUZZ_VERSION=7.3.0
+FREETYPE_VERSION=2.13.1
+HARFBUZZ_VERSION=8.0.0
 LIBPNG_VERSION=1.6.40
-JPEGTURBO_VERSION=2.1.5.1
+JPEGTURBO_VERSION=3.0.0
 OPENJPEG_VERSION=2.5.0
 XZ_VERSION=5.4.3
-TIFF_VERSION=4.5.0
+TIFF_VERSION=4.5.1
 LCMS2_VERSION=2.15
 if [[ -n "$IS_MACOS" ]]; then
     GIFLIB_VERSION=5.1.4
@@ -22,7 +22,7 @@ if [[ -n "$IS_MACOS" ]] || [[ "$MB_ML_VER" != 2014 ]]; then
 else
     ZLIB_VERSION=1.2.8
 fi
-LIBWEBP_VERSION=1.3.0
+LIBWEBP_VERSION=1.3.1
 BZIP2_VERSION=1.0.8
 LIBXCB_VERSION=1.15
 BROTLI_VERSION=1.0.9
@@ -93,6 +93,9 @@ function pre_build {
 
     ORIGINAL_CFLAGS=$CFLAGS
     CFLAGS="$CFLAGS -O3 -DNDEBUG"
+    if [[ -n "$IS_MACOS" ]]; then
+        CFLAGS="$CFLAGS -Wl,-headerpad_max_install_names"
+    fi
     build_libwebp
     CFLAGS=$ORIGINAL_CFLAGS
 
