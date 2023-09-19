@@ -155,7 +155,7 @@ function run_tests {
         apt-get update
         apt-get install -y curl libfribidi0 libopenblas-dev pkg-config unzip
     fi
-    if [ -z "$IS_ALPINE" ]; then
+    if [ -z "$IS_ALPINE" ] || [[ "$MB_PYTHON_VERSION" != 3.8 ]]; then
         python3 -m pip install numpy
     fi
     python3 -m pip install defusedxml olefile pyroma
